@@ -9,28 +9,33 @@
         "laravel"
     ],
     "require": {
-        "php": "^8.2",
-        "illuminate/http": "^10.0|^11.0|^12.0",
-        "spatie/laravel-data": "^3.0",
-        "firebase/php-jwt": "^6.11"
+        "php": "^8.2"
     },
     "autoload": {
         "psr-4": {
             "Mkb\\KatmSdkLaravel\\": "src/"
         }
     },
-    "extra": {
-        "laravel": {
-            "providers": [
-                "Mkb\\KatmSdkLaravel\\Providers\\KatmSdkServiceProvider"
-            ]
+    "autoload-dev": {
+        "psr-4": {
+            "Mkb\\KatmSdkLaravel\\Tests\\": "tests/"
+        },
+        "extra": {
+            "laravel": {
+                "providers": [
+                    "Mkb\\KatmSdkLaravel\\Providers\\KatmSdkServiceProvider"
+                ]
+            }
+        },
+        "authors": [
+            {
+                "name": "Diyorbek",
+                "email": "diordev9@gmail.com"
+            }
+        ],
+        "version": "0.1.0",
+        "require-dev": {
+            "orchestra/testbench": "^9.15"
         }
-    },
-    "authors": [
-        {
-            "name": "Diyorbek",
-            "email": "diordev9@gmail.com"
-        }
-    ],
-    "version": "0.1.0"
+    }
 }
