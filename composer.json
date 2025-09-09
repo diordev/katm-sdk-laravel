@@ -1,0 +1,29 @@
+{
+  "name": "mkb/katm-sdk-laravel",
+  "description": "Katm SDK for Laravel",
+  "type": "library",
+  "license": "MIT",
+  "keywords": ["katm", "sdk", "laravel"],
+  "require": {
+    "php": "^8.2",
+    "illuminate/support": "^10.0|^11.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Mkb\\KatmSdkLaravel\\": "src/"
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Mkb\\KatmSdkLaravel\\Providers\\KatmSdkServiceProvider"
+      ]
+    }
+  },
+  "authors": [
+    {
+      "name": "Diyorbek",
+      "email": "diordev9@gmail.com"
+    }
+  ]
+}
