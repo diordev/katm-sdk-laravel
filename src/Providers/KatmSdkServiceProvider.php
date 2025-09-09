@@ -3,19 +3,35 @@
 namespace Mkb\KatmSdkLaravel\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Mkb\KatmSdkLaravel\KatmManager;
 
 class KatmSdkServiceProvider extends ServiceProvider
 {
-    public function register(): void
+   /**
+     * Register services.
+     *
+     * @return void
+     */
+    public function register()
     {
-        // bind/singleton lar shu yerda
-        // $this->app->singleton(\Diordev\KatmSdkLaravel\KatmClient::class, fn() => new KatmClient(...));
+        $this->mergeConfigFrom(
+            __DIR__.'/../../config/katm.php', 'katm'
+        );
     }
 
-    public function boot(): void
+    /**
+     * Bootstrap services.
+     *
+     * @return void
+     */
+    public function boot()
     {
-        // routes/config/migrations publish qilishni xohlasangiz shu yerda
-        // $this->loadRoutesFrom(__DIR__.'/../../routes/web.php');
-        // $this->publishes([__DIR__.'/../../config/katm.php' => config_path('katm.php')], 'katm-config');
+        $this->publishes([
+            __DIR__.'/../../config/katm.php' => config_path('katm.php'),
+        ], 'katm-config');
+
+        $this->app->singleton(KatmManager::class, function () {
+            return new KatmManager();
+        });
     }
 }
