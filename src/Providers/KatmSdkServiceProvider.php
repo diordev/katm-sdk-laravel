@@ -7,31 +7,22 @@ use Mkb\KatmSdkLaravel\KatmManager;
 
 class KatmSdkServiceProvider extends ServiceProvider
 {
-   /**
-     * Register services.
-     *
-     * @return void
-     */
-    public function register()
+    public function register(): void
     {
-        $this->mergeConfigFrom(
-            __DIR__.'/../../config/katm.php', 'katm'
-        );
-    }
+        // Config merge (agar hali mavjud bo‘lsa)
+        $this->mergeConfigFrom(__DIR__ . '/../../config/katm.php', 'katm');
 
-    /**
-     * Bootstrap services.
-     *
-     * @return void
-     */
-    public function boot()
-    {
-        $this->publishes([
-            __DIR__.'/../../config/katm.php' => config_path('katm.php'),
-        ], 'katm-config');
-
-        $this->app->singleton(KatmManager::class, function () {
+        // Manager singleton
+        $this->app->singleton('katm.manager', function ($app) {
             return new KatmManager();
         });
+    }
+
+    public function boot(): void
+    {
+        // Publish config
+        $this->publishes([
+            __DIR__ . '/../../config/katm.php' => config_path('katm.php'),
+        ], 'katm-config');
     }
 }

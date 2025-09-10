@@ -6,5 +6,5 @@ dump-autoload:
 
 
 unit-test:
-	./vendor/bin/phpunit
-# 	./vendor/bin/phpunit tests/Feature/KatmAuthServiceTest.php
+# 	./vendor/bin/phpunit
+	./vendor/bin/phpunit tests/Feature/

@@ -4,6 +4,7 @@ return [
     'base_url' => env('KATM_BASE_URL', 'www.example.com/api'),
     'username' => env('KATM_USERNAME', 'admin'),
     'password' => env('KATM_PASSWORD', 'admin1234'),
+    'token_ttl' => env('KATM_TOKEN_TTL', 120),
     'proxy_url' => env('KATM_PROXY_URL'),
     'proxy_proto' => env('KATM_PROXY_PROTO'),
     'proxy_host' => env('KATM_PROXY_HOST'),
