@@ -1,6 +1,6 @@
 <?php
 
-namespace Mkb\KatmSdkLaravel\Fasades;
+namespace Mkb\KatmSdkLaravel\Facades;
 
 use Illuminate\Support\Facades\Facade;
 use Mkb\KatmSdkLaravel\KatmManager;

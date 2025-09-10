@@ -1,10 +1,10 @@
 <?php
 
-namespace Mkb\KatmSdkLaravel\Test;
+namespace Mkb\KatmSdkLaravel\Test\Unit;
 
-use Orchestra\Testbench\TestCase;
+use Mkb\KatmSdkLaravel\Test\TestCase;
 
-class ExampleTest extends TestCase
+class KatmServiceTest extends TestCase
 {
     public function test_example()
     {

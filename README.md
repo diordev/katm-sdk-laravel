@@ -2,6 +2,9 @@
 
 install qilish kerak hozircha paket ucun
 
-composer require --dev orchestra/testbench
+```bash
+make dump-autoload-install
 
-composer dump-autoload
+make dump-autoload
+
+```
