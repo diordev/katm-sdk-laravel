@@ -7,4 +7,4 @@ dump-autoload:
 
 unit-test:
 # 	./vendor/bin/phpunit
-	./vendor/bin/phpunit tests/Feature/
+	./vendor/bin/phpunit --group live
