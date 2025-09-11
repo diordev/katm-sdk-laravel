@@ -2,5 +2,4 @@ vendor/
 env/
 .env
 .idea/
-AGENTSUZ.md
 .phpunit.result.cache
