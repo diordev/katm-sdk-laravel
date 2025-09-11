@@ -82,7 +82,6 @@ abstract class AbstractHttpClientService
                 $cfg['proxy_port']  ?? null
             );
 
-
         $this->options['proxy'] = $proxyUrl;
     }
 
