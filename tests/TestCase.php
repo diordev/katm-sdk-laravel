@@ -7,47 +7,13 @@ use Mkb\KatmSdkLaravel\Providers\KatmSdkServiceProvider;
 use Mkb\KatmSdkLaravel\Facades\Katm as KatmFacade;
 use Spatie\LaravelData\LaravelDataServiceProvider;
 
+use Mkb\KatmSdkLaravel\Test\Enums\InitClientField;
+use Mkb\KatmSdkLaravel\Test\Enums\CreditBanActiveField;
+use Mkb\KatmSdkLaravel\Test\Enums\CreditBanStatusField;
+
 abstract class TestCase extends Orchestra
 {
-    /** <<< REAL parametrlar (hardcoded) — ehtiyot bo‘ling! >>> */
-    protected const BASE_URL  = 'https://ucin.infokredit.uz/api';
-    protected const USERNAME  = 'mkbank';
-    protected const PASSWORD  = ']bJ9i405#9GT5';
-
-    protected const INIT_CLIENT_PAYLOAD = [
-        'pPinfl'          => '30109951220071',
-        'pDocSeries'      => 'AD',
-        'pDocNumber'      => '1623289',
-        'pFirstName'      => 'Diyorbek',
-        'pLastName'       => 'Abdumutalibov',
-        'pMiddleName'     => "Abdumutallib o'g'li",
-        'pBirthDate'      => '1995-09-01',
-        'pIssueDocDate'   => '2022-08-05',
-        'pExpiredDocDate' => '2032-08-04',
-        'pGender'         => 1,
-        'pDistrictId'     => '1715',
-        'pResAddress'     => 'Dalvarzin MFY, 4-Tor X.Niyoziy, 19-uy',
-        'pRegAddress'     => 'Dalvarzin MFY, 4-Tor X.Niyoziy, 19-uy',
-        'pPhone'          => '+998999371010',
-        'pEmail'          => 'diordev@icloud.com',
-    ];
-
-    protected const CREDIT_BAN_ACTIVATE_PAYLOAD = [
-        'pIdentifier'  => '30109951220071',
-        'pFullName'    => "Abdumutalibov Diyorbek Abdumutallib o'g'li",
-        'pIdenDate'    => '1995-09-01',
-        'pSubjectType' => 2,
-    ];
-
-    protected const CREDIT_BAN_STATUS_PAYLOAD = [
-        'pIdentifier'  => '30109951220071',
-        'pSubjectType' => 2,
-    ];
-
-    /**
-     * Paket providerlari.
-     */
-    protected function getPackageProviders($app)
+    protected function getPackageProviders($app): array
     {
         return [
             KatmSdkServiceProvider::class,
@@ -55,10 +21,7 @@ abstract class TestCase extends Orchestra
         ];
     }
 
-    /**
-     * Facade alias’lar.
-     */
-    protected function getPackageAliases($app)
+    protected function getPackageAliases($app): array
     {
         return [
             'Katm' => KatmFacade::class,
@@ -66,50 +29,44 @@ abstract class TestCase extends Orchestra
     }
 
     /**
-     * Test muhiti konfiguratsiyasi:
-     * - Cache: array driver (RAM)
-     * - KATM config: inline (env’siz)
+     * Test muhiti:
+     * - Cache: array (RAM)
+     * - config('katm'): ServiceProvider merge qilgan holicha (o‘zgarmas)
      */
     protected function defineEnvironment($app): void
     {
-        // Cache’ni RAM’da ushlaymiz (shu PHP jarayonida ishlaydi)
+        // Cache’ni RAMga — testlar izolyatsiya qilinadi, disk/redis talab qilinmaydi
         $app['config']->set('cache.default', 'array');
         $app['config']->set('cache.stores.array', ['driver' => 'array']);
 
-        // KATM config
-        $app['config']->set('katm', [
-            'base_url' => static::BASE_URL,
-            'username' => static::USERNAME,
-            'password' => static::PASSWORD,
-            'timeout'  => 25,
-            'headers'  => ['Accept' => 'application/json'],
-            'retry'    => ['times' => 2, 'sleep_ms' => 300, 'when' => [429, 500, 502, 503, 504]],
-        ]);
+        // Muhim: katm config’iga TEGMAYMIZ — real katm.php + .env/.env.testing ishlaydi
+        // (KatmSdkServiceProvider::class mergeConfigFrom(...) qiladi.)
+        $this->assertKatmConfigLoaded($app);
     }
 
-    /* ---------- Qulay helperlar ---------- */
+    /** config/katm.php haqiqatdan merge bo‘lganini tekshirib, erta fail ko‘rsatadi */
+    private function assertKatmConfigLoaded($app): void
+    {
+        $cfg = (array) $app['config']->get('katm', []);
+        if ($cfg === []) {
+            $this->fail('config("katm") bo‘sh. ServiceProvider mergeConfigFrom ishlamagan yoki katm.php topilmadi.');
+        }
+    }
 
-    /**
-     * Init-client uchun tayyor payload (deep copy).
-     */
+    /* ---------- Qulay helperlar (enumlardan to‘g‘ridan-to‘g‘ri) ---------- */
+
     protected function initClientPayload(): array
     {
-        return static::INIT_CLIENT_PAYLOAD;
+        return InitClientField::defaults();
     }
 
-    /**
-     * Credit-ban activate uchun tayyor payload (deep copy).
-     */
     protected function creditBanActivatePayload(): array
     {
-        return static::CREDIT_BAN_ACTIVATE_PAYLOAD;
+        return CreditBanActiveField::defaults();
     }
 
-    /**
-     * Credit-ban status uchun tayyor payload (deep copy).
-     */
     protected function creditBanStatusPayload(): array
     {
-        return static::CREDIT_BAN_STATUS_PAYLOAD;
+        return CreditBanStatusField::defaults();
     }
 }

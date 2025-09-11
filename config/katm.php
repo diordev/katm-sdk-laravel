@@ -9,22 +9,22 @@ return [
     |--------------------------------------------------------------------------
     | API server uchun bazaviy manzil.
     */
-    'base_url' => env('KATM_BASE_URL', 'https://www.example.com/api'),
+    'base_url' => env('KATM_BASE_URL'),
 
     /*
     |--------------------------------------------------------------------------
     | Basic Auth (ixtiyoriy)
     |--------------------------------------------------------------------------
     */
-    'username' => env('KATM_USERNAME', 'admin'),
-    'password' => env('KATM_PASSWORD', 'admin1234'),
+    'username' => env('KATM_USERNAME'),
+    'password' => env('KATM_PASSWORD'),
 
     /*
     |--------------------------------------------------------------------------
     | Token TTL (ixtiyoriy, sekundlarda)
     |--------------------------------------------------------------------------
     */
-    'token_ttl' => env('KATM_TOKEN_TTL', 120),
+    'token_ttl' => env('KATM_TOKEN_TTL'),
 
     /*
     |--------------------------------------------------------------------------
@@ -75,8 +75,8 @@ return [
     | when     - qaysi HTTP status kodlarda qayta urinish
     */
     'retry' => [
-        'times' => env('HTTP_RETRY_TRIES', 0),
-        'sleep_ms' => env('HTTP_RETRY_SLEEP_MS', 200),
+        'tries' => env('HTTP_RETRY_TRIES', 2),
+        'sleep_ms' => env('HTTP_RETRY_SLEEP_MS', 300),
         'when' => [429, 500, 502, 503, 504],
     ],
 

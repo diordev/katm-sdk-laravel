@@ -9,13 +9,13 @@ use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
+use Mkb\KatmSdkLaravel\Enums\KatmApiEndpointEnum;
+use Mkb\KatmSdkLaravel\Enums\KatmAuthEnum;
 use RuntimeException;
 
 abstract class AbstractHttpClientService
 {
-    protected const AUTH_NONE   = 'none';
-    protected const AUTH_BASIC  = 'basic';
-    protected const AUTH_BEARER = 'bearer';
+
     protected const VERSION_SDK = 'KatmSdkLaravel/1.0.0';
     protected string $baseUrl;
     protected string $username;
@@ -43,7 +43,7 @@ abstract class AbstractHttpClientService
     public function __construct()
     {
         $cfg = (array) config('katm', []);
-
+        
         $this->baseUrl  = rtrim((string)($cfg['base_url'] ?? ''), '/');
         $this->username = (string)($cfg['username'] ?? '');
         $this->password = (string)($cfg['password'] ?? '');
@@ -114,7 +114,7 @@ abstract class AbstractHttpClientService
     }
 
     /** HTTP klientini tayyorlaydi */
-    protected function client(string $auth = self::AUTH_NONE): PendingRequest
+    protected function client(?string $auth = KatmAuthEnum::AuthNone->value): PendingRequest
     {
         if ($this->baseUrl === '') {
             throw new RuntimeException("KATM base_url bo'sh. config/katm.php ni to'ldiring.");
@@ -155,11 +155,11 @@ abstract class AbstractHttpClientService
 
         // Auth rejimi
         switch ($auth) {
-            case self::AUTH_BASIC:
+            case KatmAuthEnum::AuthBasic->value:
                 $client = $client->withBasicAuth($this->username, $this->password);
                 break;
 
-            case self::AUTH_BEARER:
+            case KatmAuthEnum::AuthBearer->value:
                 $allowEmpty = (bool) config('katm.allow_empty_bearer', false);
                 if (! $this->bearer && ! $allowEmpty) {
                     throw new RuntimeException('Bearer token topilmadi. Avval withBearer() chaqiring yoki login qiling.');
@@ -169,7 +169,7 @@ abstract class AbstractHttpClientService
                 }
                 break;
 
-            case self::AUTH_NONE:
+            case KatmAuthEnum::AuthNone->value:
             default:
                 // auth yo‘q
                 break;
@@ -179,38 +179,38 @@ abstract class AbstractHttpClientService
     }
 
     /** GET helper */
-    protected function get(string $path, array $query = [], string $auth = self::AUTH_NONE): array
+    protected function get(string $path, array $query = [], ?string $auth = KatmAuthEnum::AuthNone->value): array
     {
         return $this->requestJson('GET', $path, ['query' => $query], $auth);
     }
 
     /** POST helper (JSON) */
-    protected function post(string $path, array $payload = [], string $auth = self::AUTH_NONE): array
+    protected function post(string $path, array $payload = [], ?string $auth = KatmAuthEnum::AuthNone->value): array
     {
         return $this->requestJson('POST', $path, ['json' => $payload], $auth);
     }
 
     /** PUT helper (JSON) */
-    protected function put(string $path, array $payload = [], string $auth = self::AUTH_NONE): array
+    protected function put(string $path, array $payload = [], ?string $auth = KatmAuthEnum::AuthNone->value): array
     {
         return $this->requestJson('PUT', $path, ['json' => $payload], $auth);
     }
 
     /** PATCH helper (JSON) */
-    protected function patch(string $path, array $payload = [], string $auth = self::AUTH_NONE): array
+    protected function patch(string $path, array $payload = [], ?string $auth = KatmAuthEnum::AuthNone->value): array
     {
         return $this->requestJson('PATCH', $path, ['json' => $payload], $auth);
     }
 
     /** DELETE helper (query yoki body bilan) */
-    protected function delete(string $path, array $payloadOrQuery = [], string $auth = self::AUTH_NONE, bool $asBody = false): array
+    protected function delete(string $path, array $payloadOrQuery = [], ?string $auth = KatmAuthEnum::AuthNone->value, bool $asBody = false): array
     {
         $options = $asBody ? ['json' => $payloadOrQuery] : ['query' => $payloadOrQuery];
         return $this->requestJson('DELETE', $path, $options, $auth);
     }
 
     /** x-www-form-urlencoded POST -> JSON kutadi */
-    protected function postForm(string $path, array $payload = [], string $auth = self::AUTH_NONE): array
+    protected function postForm(string $path, array $payload = [], ?string $auth = KatmAuthEnum::AuthNone->value): array
     {
         $url    = $this->norm($path);
         $client = $this->client($auth)->asForm();
@@ -231,7 +231,7 @@ abstract class AbstractHttpClientService
     }
 
     /** Umumiy yuboruvchi – JSON kutadi */
-    protected function requestJson(string $method, string $path, array $options = [], string $auth = self::AUTH_NONE): array
+    protected function requestJson(string $method, string $path, array $options = [], ?string $auth = KatmAuthEnum::AuthNone->value): array
     {
         $url    = $this->norm($path);
         $client = $this->client($auth);
@@ -256,7 +256,7 @@ abstract class AbstractHttpClientService
      / Misol: robots.txt, yoki metrics/prometheus endpoint
      /
      */
-    protected function requestRaw(string $method, string $path, array $options = [], string $auth = self::AUTH_NONE): string
+    protected function requestRaw(string $method, string $path, array $options = [], ?string $auth = KatmAuthEnum::AuthNone->value): string
     {
         $url    = $this->norm($path);
         $client = $this->client($auth);
