@@ -1,24 +1,93 @@
 <?php
 
+
 return [
-    'base_url' => env('KATM_BASE_URL', 'www.example.com/api'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Bazaviy URL
+    |--------------------------------------------------------------------------
+    | API server uchun bazaviy manzil.
+    */
+    'base_url' => env('KATM_BASE_URL', 'https://www.example.com/api'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Basic Auth (ixtiyoriy)
+    |--------------------------------------------------------------------------
+    */
     'username' => env('KATM_USERNAME', 'admin'),
     'password' => env('KATM_PASSWORD', 'admin1234'),
-    'token_ttl' => env('KATM_TOKEN_TTL', 120),
-    'proxy_url' => env('KATM_PROXY_URL'),
-    'proxy_proto' => env('KATM_PROXY_PROTO'),
-    'proxy_host' => env('KATM_PROXY_HOST'),
-    'proxy_port' => env('KATM_PROXY_PORT'),
-    'timeout' => env('KATM_TIMEOUT', 10),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Token TTL (ixtiyoriy, sekundlarda)
+    |--------------------------------------------------------------------------
+    */
+    'token_ttl' => env('KATM_TOKEN_TTL', 120),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Proxy sozlamalari
+    |--------------------------------------------------------------------------
+    | To‘liq URL (proxy_url) yoki protokol/host/port bo‘laklari
+    */
+    'proxy_url' => env('HTTP_PROXY_URL'),
+    'proxy_proto' => env('HTTP_PROXY_PROTOCOL'),
+    'proxy_host' => env('HTTP_PROXY_HOST'),
+    'proxy_port' => env('HTTP_PROXY_PORT'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Timeout sozlamalari
+    |--------------------------------------------------------------------------
+    | timeout         - so‘rovning umumiy muddati (sekundlarda)
+    | connect_timeout - ulanishni boshlash muddati (sekundlarda)
+    */
+    'timeout' => env('HTTP_TIMEOUT', 10),
+    'connect_timeout' => env('HTTP_CONNECT_TIMEOUT', 5),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Default headerlar
+    |--------------------------------------------------------------------------
+    | Har bir so‘rov bilan yuboriladigan umumiy headerlar.
+    */
     'headers' => [
-        'Accept' => 'application/json',
+        'Accept' => env('HTTP_ACCEPT', 'application/json'),
+        'User-Agent' => env('HTTP_USER_AGENT', 'KatmSdk/1.0.0'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Harbir Requestlarga Str::uuid() yangi unikal ID yaratishga ruxsat berish.
+    |--------------------------------------------------------------------------
+    | Har bir so‘rov bilan X-Request-ID yuboriladigan umumiy headerlar.
+    */
+    'add_request_id' => env('HTTP_ADD_REQUEST_ID', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Retry sozlamalari
+    |--------------------------------------------------------------------------
+    | times    - necha marta qayta urinish
+    | sleep_ms - urinishlar orasida kutish (millisekund)
+    | when     - qaysi HTTP status kodlarda qayta urinish
+    */
     'retry' => [
-        'times' => env('KATM_RETRY_TIMES', 3),
-        'sleep_ms' => env('KATM_RETRY_SLEEP_MS', 200), // millisekund
+        'times' => env('HTTP_RETRY_TRIES', 0),
+        'sleep_ms' => env('HTTP_RETRY_SLEEP_MS', 200),
         'when' => [429, 500, 502, 503, 504],
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | SSL sertifikat tekshiruvi
+    |--------------------------------------------------------------------------
+    | true:                 - default, xavfsiz ulanish (tavsiya qilinadi, prod uchun)
+    | false:                - faqat dev/test uchun (self-signed cert bo‘lsa)
+    | "/path/to/cert.pem":  - maxsus CA fayl yo‘li
+    */
+    'verify_ssl' => env('HTTP_VERIFY_SSL', false),
 
 ];

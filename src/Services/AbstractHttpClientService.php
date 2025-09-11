@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use RuntimeException;
 
-abstract class AbstractHttpClientServiceGPT
+abstract class AbstractHttpClientService
 {
     protected const AUTH_NONE   = 'none';
     protected const AUTH_BASIC  = 'basic';
@@ -49,12 +49,12 @@ abstract class AbstractHttpClientServiceGPT
         $this->password = (string)($cfg['password'] ?? '');
         $this->timeout  = (int)($cfg['timeout'] ?? 10);
 
+        // Http header config:
         $this->headers = is_array($cfg['headers'] ?? null)
             ? $cfg['headers']
             : ['Accept' => 'application/json', 'User-Agent' => self::VERSION_SDK];
 
-
-
+        // Retry config:
         $tries   = (int)($cfg['retry']['tries'] ?? 0);
         $sleepMs = (int)($cfg['retry']['sleep_ms'] ?? 0);
         $when    = (array)($cfg['retry']['when'] ?? [429, 500, 502, 503, 504]);
@@ -64,7 +64,7 @@ abstract class AbstractHttpClientServiceGPT
             'when' => $when
         ];
 
-        // Ixtiyoriy tarmoq opsiyalari
+        // Timeout config:
         $connectTimeout = $cfg['connect_timeout'] ?? null; // soniya
         if ($connectTimeout !== null) {
             $this->options['connect_timeout'] = (int) $connectTimeout;
@@ -74,7 +74,7 @@ abstract class AbstractHttpClientServiceGPT
             $this->options['verify'] = $cfg['verify_ssl'];
         }
 
-        // Proxy: to‘liq URL -> bo‘lmasa ENV fallback
+        // Proxy config:
         $proxyUrl = $cfg['proxy_url']
             ?? $this->buildProxyUrl(
                 $cfg['proxy_proto'] ?? null,
@@ -82,9 +82,7 @@ abstract class AbstractHttpClientServiceGPT
                 $cfg['proxy_port']  ?? null
             );
 
-
         $this->options['proxy'] = $proxyUrl;
-
     }
 
     /** Bearer token ulash/yangilash */
@@ -233,7 +231,7 @@ abstract class AbstractHttpClientServiceGPT
     }
 
     /** Umumiy yuboruvchi – JSON kutadi */
-    private function requestJson(string $method, string $path, array $options = [], string $auth = self::AUTH_NONE): array
+    protected function requestJson(string $method, string $path, array $options = [], string $auth = self::AUTH_NONE): array
     {
         $url    = $this->norm($path);
         $client = $this->client($auth);
@@ -253,8 +251,12 @@ abstract class AbstractHttpClientServiceGPT
         return $json;
     }
 
-    /** Umumiy yuboruvchi – raw string body qaytaradi */
-    private function requestRaw(string $method, string $path, array $options = [], string $auth = self::AUTH_NONE): string
+    /** Umumiy yuboruvchi – raw string body qaytaradi
+     / Bu odatda API’dan plain text, HTML, yoki XML olish uchun kerak bo‘ladi
+     / Misol: robots.txt, yoki metrics/prometheus endpoint
+     /
+     */
+    protected function requestRaw(string $method, string $path, array $options = [], string $auth = self::AUTH_NONE): string
     {
         $url    = $this->norm($path);
         $client = $this->client($auth);
@@ -293,7 +295,7 @@ abstract class AbstractHttpClientServiceGPT
         return null;
     }
 
-    /** Subclass’lar uchun qo‘shimcha sozlash hook’i */
+    /** Subclass’lar uchun qo‘shimcha client ni sozlash uchun */
     protected function configureClient(PendingRequest $client): PendingRequest
     {
         return $client;

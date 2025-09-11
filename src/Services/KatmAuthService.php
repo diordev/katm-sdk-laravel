@@ -3,14 +3,27 @@
 namespace Mkb\KatmSdkLaravel\Services;
 
 use Illuminate\Support\Facades\Cache;
+use Mkb\KatmSdkLaravel\Enums\KatmApiEndpointEnum;
 use Mkb\KatmSdkLaravel\Responses\KatmResponseData;
 
 class KatmAuthService extends AbstractHttpClientService
 {
+    private const string CACHE_KEY = 'katm_sdk_token';
     protected ?string $token = null;
 
-    /** Doimiy cache key */
-    private const CACHE_KEY = 'katm_sdk_token';
+
+    protected function auth(): array
+    {
+        $payload = [
+            'login' => $this->username,
+            'password' => $this->password
+        ];
+
+        $resp = $this->post(KatmApiEndpointEnum::Auth->value, $payload);
+
+        $this->withBearer($resp['data']['accessToken'] ?? null);
+        return $resp;
+    }
 
     /**
      * Login: token olish, cache’ga yozish, clientga Bearer qo‘shish.
