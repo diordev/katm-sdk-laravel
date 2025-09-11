@@ -4,33 +4,41 @@ declare(strict_types=1);
 
 namespace Mkb\KatmSdkLaravel\Services;
 
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 use RuntimeException;
 
-abstract class AbstractHttpClientService
+abstract class AbstractHttpClientServiceGPT
 {
     protected const AUTH_NONE   = 'none';
     protected const AUTH_BASIC  = 'basic';
     protected const AUTH_BEARER = 'bearer';
-
+    protected const VERSION_SDK = 'KatmSdkLaravel/1.0.0';
     protected string $baseUrl;
     protected string $username;
     protected string $password;
     protected int    $timeout;
+
     /** @var array<string,string> */
     protected array  $headers;
+
     /** @var array{times:int,sleep_ms:int,when:int[]} */
     protected array  $retry;
+
     /** @var array<string,mixed> */
     protected array  $options = [];
 
     /** Bearer token (ixtiyoriy) */
     protected ?string $bearer = null;
 
-    /** Qo‘shimcha headerlar (run-time qo‘shiladi) */
+    /** Doimiy qo‘shimcha headerlar */
     protected array $extraHeaders = [];
+
+    /** Faqat navbatdagi so‘rovga qo‘shiladigan headerlar */
+    protected array $extraHeadersOnce = [];
 
     public function __construct()
     {
@@ -41,15 +49,32 @@ abstract class AbstractHttpClientService
         $this->password = (string)($cfg['password'] ?? '');
         $this->timeout  = (int)($cfg['timeout'] ?? 10);
 
-        $this->headers  = is_array($cfg['headers'] ?? null)
+        $this->headers = is_array($cfg['headers'] ?? null)
             ? $cfg['headers']
-            : ['Accept' => 'application/json'];
+            : ['Accept' => 'application/json', 'User-Agent' => self::VERSION_SDK];
 
-        $times   = (int)($cfg['retry']['times'] ?? 0);
+
+
+        $tries   = (int)($cfg['retry']['tries'] ?? 0);
         $sleepMs = (int)($cfg['retry']['sleep_ms'] ?? 0);
         $when    = (array)($cfg['retry']['when'] ?? [429, 500, 502, 503, 504]);
-        $this->retry   = ['times' => max(0, $times), 'sleep_ms' => max(0, $sleepMs), 'when' => $when];
+        $this->retry = [
+            'tries' => max(0, $tries),
+            'sleep_ms' => max(0, $sleepMs),
+            'when' => $when
+        ];
 
+        // Ixtiyoriy tarmoq opsiyalari
+        $connectTimeout = $cfg['connect_timeout'] ?? null; // soniya
+        if ($connectTimeout !== null) {
+            $this->options['connect_timeout'] = (int) $connectTimeout;
+        }
+        if (array_key_exists('verify_ssl', $cfg)) {
+            // bool yoki sertifikat fayl yo‘li bo‘lishi mumkin
+            $this->options['verify'] = $cfg['verify_ssl'];
+        }
+
+        // Proxy: to‘liq URL -> bo‘lmasa ENV fallback
         $proxyUrl = $cfg['proxy_url']
             ?? $this->buildProxyUrl(
                 $cfg['proxy_proto'] ?? null,
@@ -57,9 +82,9 @@ abstract class AbstractHttpClientService
                 $cfg['proxy_port']  ?? null
             );
 
-        if (is_string($proxyUrl) && str_contains($proxyUrl, '://')) {
-            $this->options['proxy'] = $proxyUrl;
-        }
+
+        $this->options['proxy'] = $proxyUrl;
+
     }
 
     /** Bearer token ulash/yangilash */
@@ -76,40 +101,56 @@ abstract class AbstractHttpClientService
         return $this;
     }
 
-    /** Qo‘shimcha headerlar qo‘shish (mavjudlarini ustiga yozadi) */
+    /** Doimiy qo‘shimcha headerlar qo‘shish (merge) */
     public function withExtraHeaders(array $headers): static
     {
         $this->extraHeaders = array_merge($this->extraHeaders, $headers);
         return $this;
     }
 
-    /** HTTP clientni tayyorlaydi — HAR DOIM PendingRequest qaytaradi */
+    /** Faqat navbatdagi so‘rovga header qo‘shish */
+    public function withExtraHeadersOnce(array $headers): static
+    {
+        $this->extraHeadersOnce = array_merge($this->extraHeadersOnce, $headers);
+        return $this;
+    }
+
+    /** HTTP klientini tayyorlaydi */
     protected function client(string $auth = self::AUTH_NONE): PendingRequest
     {
         if ($this->baseUrl === '') {
-            throw new RuntimeException('KATM base_url bo‘sh. config/katm.php ni tekshiring.');
+            throw new RuntimeException("KATM base_url bo'sh. config/katm.php ni to'ldiring.");
         }
 
-        $headers = array_merge($this->headers, $this->extraHeaders);
+        // Headerlarni yig‘ish: base -> persistent -> one-shot
+        $headers = array_merge($this->headers, $this->extraHeaders, $this->extraHeadersOnce);
 
+        // Tracing uchun X-Request-ID (app.debug yoki katm.add_request_id yoqilganda)
+        $addRequestId = (bool) (config('katm.add_request_id', false) || config('app.debug'));
+        if ($addRequestId && ! array_key_exists('X-Request-ID', $headers)) {
+            $headers['X-Request-ID'] = (string) Str::uuid();
+        }
 
         $client = Http::baseUrl($this->baseUrl)
             ->timeout($this->timeout)
             ->withHeaders($headers)
             ->withOptions($this->options);
 
-        // Retry sozlamalari
-        if ($this->retry['times'] > 0 && $this->retry['sleep_ms'] > 0) {
+        // Subclass’lar uchun hook
+        $client = $this->configureClient($client);
+
+        // Retry (immediate retry ham mumkin; connection-level xatolarni ham qamrab oladi)
+        if ($this->retry['tries'] > 0) {
             $whenStatuses = $this->retry['when'];
             $client = $client->retry(
-                $this->retry['times'],
+                $this->retry['tries'],
                 $this->retry['sleep_ms'],
                 function ($exception) use ($whenStatuses): bool {
                     if (method_exists($exception, 'response') && $exception->response()) {
                         return in_array($exception->response()->status(), $whenStatuses, true);
                     }
-                    // Connection level xatolar uchun ham qayta urinish mumkin
-                    return $exception instanceof RequestException;
+                    return $exception instanceof ConnectionException
+                        || $exception instanceof RequestException;
                 }
             );
         }
@@ -121,6 +162,10 @@ abstract class AbstractHttpClientService
                 break;
 
             case self::AUTH_BEARER:
+                $allowEmpty = (bool) config('katm.allow_empty_bearer', false);
+                if (! $this->bearer && ! $allowEmpty) {
+                    throw new RuntimeException('Bearer token topilmadi. Avval withBearer() chaqiring yoki login qiling.');
+                }
                 if ($this->bearer) {
                     $client = $client->withToken($this->bearer);
                 }
@@ -141,19 +186,19 @@ abstract class AbstractHttpClientService
         return $this->requestJson('GET', $path, ['query' => $query], $auth);
     }
 
-    /** POST helper */
+    /** POST helper (JSON) */
     protected function post(string $path, array $payload = [], string $auth = self::AUTH_NONE): array
     {
         return $this->requestJson('POST', $path, ['json' => $payload], $auth);
     }
 
-    /** PUT helper */
+    /** PUT helper (JSON) */
     protected function put(string $path, array $payload = [], string $auth = self::AUTH_NONE): array
     {
         return $this->requestJson('PUT', $path, ['json' => $payload], $auth);
     }
 
-    /** PATCH helper */
+    /** PATCH helper (JSON) */
     protected function patch(string $path, array $payload = [], string $auth = self::AUTH_NONE): array
     {
         return $this->requestJson('PATCH', $path, ['json' => $payload], $auth);
@@ -166,32 +211,73 @@ abstract class AbstractHttpClientService
         return $this->requestJson('DELETE', $path, $options, $auth);
     }
 
-    /**
-     * Umumiy yuboruvchi – JSON kutadi.
-     * Xato bo‘lsa tushunarli exception tashlaydi.
-     */
-    protected function requestJson(string $method, string $path, array $options = [], string $auth = self::AUTH_NONE): array
+    /** x-www-form-urlencoded POST -> JSON kutadi */
+    protected function postForm(string $path, array $payload = [], string $auth = self::AUTH_NONE): array
     {
-        $url = $this->norm($path);
+        $url    = $this->norm($path);
+        $client = $this->client($auth)->asForm();
 
-        $response = $this->client($auth)->send($method, $url, $options);
+        // one-shot headerlar faqat bitta so‘rovga
+        $this->extraHeadersOnce = [];
 
-        // HTTP xatolarni tashlaydi (4xx/5xx)
+        $response = $client->post($url, $payload);
         $response->throw();
 
         $json = $response->json();
-
-        if (!is_array($json)) {
-            throw new RuntimeException("Kutilgan JSON massiv emas: {$method} {$url}");
+        if (! is_array($json)) {
+            $status = $response->status();
+            $type   = (string) $response->header('Content-Type');
+            throw new RuntimeException("Kutilgan JSON massiv emas: POST {$url}; status={$status}; content-type={$type}");
         }
-
         return $json;
     }
 
-    /** Path normalizatsiya */
+    /** Umumiy yuboruvchi – JSON kutadi */
+    private function requestJson(string $method, string $path, array $options = [], string $auth = self::AUTH_NONE): array
+    {
+        $url    = $this->norm($path);
+        $client = $this->client($auth);
+
+        // one-shot headerlar iste’mol qilindi
+        $this->extraHeadersOnce = [];
+
+        $response = $client->send($method, $url, $options);
+        $response->throw();
+
+        $json = $response->json();
+        if (! is_array($json)) {
+            $status = $response->status();
+            $type   = (string) $response->header('Content-Type');
+            throw new RuntimeException("Kutilgan JSON massiv emas: {$method} {$url}; status={$status}; content-type={$type}");
+        }
+        return $json;
+    }
+
+    /** Umumiy yuboruvchi – raw string body qaytaradi */
+    private function requestRaw(string $method, string $path, array $options = [], string $auth = self::AUTH_NONE): string
+    {
+        $url    = $this->norm($path);
+        $client = $this->client($auth);
+
+        // one-shot headerlar iste’mol qilindi
+        $this->extraHeadersOnce = [];
+
+        $response = $client->send($method, $url, $options);
+        $response->throw();
+        return (string) $response->body();
+    }
+
+    /** Path normalizatsiya: absolyut URL’ni saqlab qoladi */
     private function norm(string $path): string
     {
-        return '/' . ltrim($path, '/');
+        $p = trim($path);
+        if ($p === '') {
+            return '/';
+        }
+        if (str_starts_with($p, 'http://') || str_starts_with($p, 'https://')) {
+            return $p;
+        }
+        return '/' . ltrim($p, '/');
     }
 
     /** Proxy URL yig‘ish */
@@ -205,5 +291,11 @@ abstract class AbstractHttpClientService
             return "{$proto}://{$host}:{$port}";
         }
         return null;
+    }
+
+    /** Subclass’lar uchun qo‘shimcha sozlash hook’i */
+    protected function configureClient(PendingRequest $client): PendingRequest
+    {
+        return $client;
     }
 }
