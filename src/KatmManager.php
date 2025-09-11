@@ -2,10 +2,7 @@
 
 namespace Mkb\KatmSdkLaravel;
 
-use Mkb\KatmSdkLaravel\Responses\KatmResponseData;
 use Mkb\KatmSdkLaravel\Services\KatmAuthService;
-use Mkb\KatmSdkLaravel\Services\KatmCreditBanService;
-use Mkb\KatmSdkLaravel\Services\KatmInitClientService;
 
 /**
  * Barcha servislarni yagona joydan orkestratsiya qiladi.
