@@ -9,7 +9,7 @@ Ushbu ko‘rsatmalar butun repozitoriy uchun amal qiladi.
 
 ## O‘rnatish
 - Dev dependency o‘rnatish va autoload optimallashtirish:
-    - `make dump-autoload-install`
+    - `make install`
 - Kod o‘zgarganda autoload yangilash:
     - `make dump-autoload`
 

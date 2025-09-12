@@ -4,17 +4,21 @@ namespace Mkb\KatmSdkLaravel\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Mkb\KatmSdkLaravel\KatmManager;
+use Mkb\KatmSdkLaravel\Services\KatmCreditBanService;
+use Mkb\KatmSdkLaravel\Services\KatmInitClientService;
 
 class KatmSdkServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
-        // Config merge (agar hali mavjud bo‘lsa)
         $this->mergeConfigFrom(__DIR__ . '/../../config/katm.php', 'katm');
 
         // Manager singleton
         $this->app->singleton('katm.manager', function ($app) {
-            return new KatmManager();
+            return new KatmManager(
+                $app->make(KatmInitClientService::class),
+                $app->make(KatmCreditBanService::class),
+            );
         });
     }
 

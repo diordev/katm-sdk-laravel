@@ -2,31 +2,42 @@
 
 namespace Mkb\KatmSdkLaravel;
 
-use Mkb\KatmSdkLaravel\Services\KatmAuthService;
+use Mkb\KatmSdkLaravel\Services\KatmCreditBanService;
+use Mkb\KatmSdkLaravel\Services\KatmInitClientService;
 
 /**
  * Barcha servislarni yagona joydan orkestratsiya qiladi.
  * Token oqimini bir joyda ushlab turadi.
  */
-class KatmManager
+final class KatmManager
 {
-    protected KatmAuthService $user;
-    protected ?string $token = null;
+    public function __construct(
+        protected KatmInitClientService $authService,
+        protected KatmCreditBanService $creditBanService,
+    ) {}
 
-    public function __construct(?KatmAuthService $auth = null)
-    {
-        $this->user = $auth ?? new KatmAuthService();
-    }
-
-    /** Tashqi: login */
+    /** Login — tokenni o‘rnatadi */
     public function login(): array
     {
-        $resp = $this->user->auth();
-        if ($resp["success"]) {
-            $this->token = $resp['data']['accessToken'];
-        }
-        return $resp;
+        return $this->authService->auth();
     }
 
+    /** Fuqaroni KATM servisedan ro'yhatdan o'tkazish — Bearer:'token' bilan ishlaydi */
+    public function initClient(array $payload): array
+    {
+        return $this->authService->initClient($payload);
+    }
 
+    /** Fuqaro kredit olishni taqiqlashni activlashtirish — Bearer:'token' bilan ishlaydi */
+
+    public function creditBanActive(array $payload): array
+    {
+        return $this->creditBanService->creditBanActive($payload);
+    }
+
+    /** Fuqaro kredit taqiq status bilish — Bearer:'token' bilan ishlaydi */
+    public function creditBanStatus(array $payload): array
+    {
+        return $this->creditBanService->creditBanStatus($payload);
+    }
 }

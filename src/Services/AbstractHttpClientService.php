@@ -159,13 +159,10 @@ abstract class AbstractHttpClientService
                 break;
 
             case KatmAuthEnum::AuthBearer->value:
-                $allowEmpty = (bool) config('katm.allow_empty_bearer', false);
-                if (! $this->bearer && ! $allowEmpty) {
+                if ($this->bearer === null || $this->bearer === '') {
                     throw new RuntimeException('Bearer token topilmadi. Avval withBearer() chaqiring yoki login qiling.');
                 }
-                if ($this->bearer) {
-                    $client = $client->withToken($this->bearer);
-                }
+                $client = $client->withToken($this->bearer);
                 break;
 
             case KatmAuthEnum::AuthNone->value:

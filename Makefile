@@ -7,6 +7,5 @@ dump-autoload:
 
 unit-test:
 # 	./vendor/bin/phpunit
-#	./vendor/bin/phpunit --group live --display-deprecations
-	./vendor/bin/phpunit --group live --display-deprecations --do-not-cache-result
+	./vendor/bin/phpunit --group live --display-deprecations
 
