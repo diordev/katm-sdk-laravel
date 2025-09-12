@@ -20,9 +20,9 @@
 
     <php>
         <!-- live env (misol) -->
-        <env name="KATM_BASE_URL" value='https://ucin.infokredit.uz/api'/>
-        <env name="KATM_USERNAME"  value='mkbank'/>
-        <env name="KATM_PASSWORD"  value="]bJ9i405#9GT5"/>
+        <env name="KATM_BASE_URL" value='https://example.uz/api'/>
+        <env name="KATM_USERNAME"  value='admin'/>
+        <env name="KATM_PASSWORD"  value="admin123"/>
     </php>
 
 </phpunit>
