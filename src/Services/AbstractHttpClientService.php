@@ -9,7 +9,6 @@ use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
-use Mkb\KatmSdkLaravel\Enums\KatmApiEndpointEnum;
 use Mkb\KatmSdkLaravel\Enums\KatmAuthEnum;
 use RuntimeException;
 

@@ -1,5 +1,5 @@
-dump-autoload-install:
-	composer dump-autoload -o && composer require --dev orchestra/testbench
+install:
+	composer require --dev orchestra/testbench && composer dump-autoload -o
 
 dump-autoload:
 	composer dump-autoload -o
