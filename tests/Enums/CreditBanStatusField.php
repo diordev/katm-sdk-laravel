@@ -8,7 +8,7 @@ enum CreditBanStatusField
     public function meta(): array
     {
         return match ($this) {
-            self::Identifier    => ['key' => 'pIdentifier',     'value' => '30109951220071'],
+            self::Identifier    => ['key' => 'pIdentifier',     'value' => '30109951225171'],
             self::Subject       => ['key' => 'pSubjectType',    'value' => 2],
         };
 
