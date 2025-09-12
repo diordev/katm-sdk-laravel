@@ -2,9 +2,8 @@
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
          bootstrap="vendor/autoload.php"
-         colors="true"
+         colors="true">
 
->
     <testsuites>
         <testsuite name="Unit">
             <directory>tests/Unit</directory>
@@ -17,11 +16,13 @@
         <include>
             <directory>app</directory>
         </include>
-    </source>
+     </source>
+
     <php>
         <!-- live env (misol) -->
-        <env name="KATM_BASE_URL" value='https://example.com/api'/>
-        <env name="KATM_USERNAME"  value='admin'/>
-        <env name="KATM_PASSWORD"  value="admin123"/>
+        <env name="KATM_BASE_URL" value='https://ucin.infokredit.uz/api'/>
+        <env name="KATM_USERNAME"  value='mkbank'/>
+        <env name="KATM_PASSWORD"  value="]bJ9i405#9GT5"/>
     </php>
+
 </phpunit>

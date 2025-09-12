@@ -7,12 +7,12 @@ use Mkb\KatmSdkLaravel\Enums\KatmAuthEnum;
 use RuntimeException;
 
 
-class KatmCreditBanService extends KatmAuthService
+class KatmCreditBanService extends KatmInitClientService
 {
 
-    public function creditBanActive(array $payload): array
+    public function creditBanActive(array $payload, array $initClientPayload): array
     {
-        $this->auth();
+        $this->initClient($initClientPayload);
         $resp = $this->post(KatmApiEndpointEnum::CreditBanActive->value, $payload, KatmAuthEnum::AuthBearer->value);
 
         if (!($resp['success'] ?? false)) {
@@ -23,9 +23,9 @@ class KatmCreditBanService extends KatmAuthService
         return $resp;
     }
 
-    public function creditBanStatus(array $payload): array
+    public function creditBanStatus(array $payload, array $initClientPayload): array
     {
-        $this->auth();
+        $this->initClient($initClientPayload);
         $resp = $this->post(KatmApiEndpointEnum::CreditBanStatus->value, $payload, KatmAuthEnum::AuthBearer->value);
 
         if (!($resp['success'] ?? false)) {

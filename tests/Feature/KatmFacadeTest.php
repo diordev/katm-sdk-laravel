@@ -35,7 +35,7 @@ class KatmFacadeTest extends TestCase
      */
     public function test_creditBanActive()
     {
-        $resp = Katm::creditBanActive(CreditBanActiveField::defaults());
+        $resp = Katm::creditBanActive(CreditBanActiveField::defaults(), InitClientField::defaults());
         $this->assertTrue($resp['success'], $resp['error'] ?? 'Init Client failed');
     }
 
@@ -44,7 +44,7 @@ class KatmFacadeTest extends TestCase
      */
     public function test_creditBanStatus()
     {
-        $resp = Katm::creditBanStatus(CreditBanStatusField::defaults());
+        $resp = Katm::creditBanStatus(CreditBanStatusField::defaults(), InitClientField::defaults());
         $this->assertTrue($resp['success'], $resp['error'] ?? 'Init Client failed');
     }
 

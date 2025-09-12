@@ -1,0 +1,8 @@
+1) KATM servicega Authentication qiladi yani login va password jo'natadi  va access_token olish kerak
+2) KATM serviceda mijozni Identification qiladi va access_token bilan yani Bearer:'token' orqali mijozni malumotlarini
+kiritadi va service unga javoban mijoz uchun pClientId qaytaradi.
+
+3) Katm service orqali mijozni credit ban active yani credit olishga taqiq qo'yish mijoz malumotlarini jo'natadi
+agar mijoz KATM da oldin Authentication qilgan bo'lsa u holda success bo'ladi aks holda Authentication qilish kerak.
+
+4) Katm service orqali credit ban status bilish mijoz malumotlarini jo'natadi va success bo'sa ko'rinadi. +

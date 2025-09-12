@@ -30,14 +30,14 @@ final class KatmManager
 
     /** Fuqaro kredit olishni taqiqlashni activlashtirish — Bearer:'token' bilan ishlaydi */
 
-    public function creditBanActive(array $payload): array
+    public function creditBanActive(array $payload, array $initClientPayload): array
     {
-        return $this->creditBanService->creditBanActive($payload);
+        return $this->creditBanService->creditBanActive($payload, $initClientPayload);
     }
 
     /** Fuqaro kredit taqiq status bilish — Bearer:'token' bilan ishlaydi */
-    public function creditBanStatus(array $payload): array
+    public function creditBanStatus(array $payload, array $initClientPayload): array
     {
-        return $this->creditBanService->creditBanStatus($payload);
+        return $this->creditBanService->creditBanStatus($payload, $initClientPayload);
     }
 }
